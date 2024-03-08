@@ -1,0 +1,37 @@
+{
+    "manifest_version": 3,
+    "name": "Countdown Timer",
+    "description": "Chrome Extension Timer by Jeff",
+    "version": "1.0",
+    "permissions": [
+        "activeTab",
+        "notifications",
+        "alarms",
+        "storage",
+        "tabs"
+    ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_icons": {
+            "16": "icon.png",
+            "48": "icon.png",
+            "128": "icon.png"
+        },
+        "open_in_tab": true
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "web_accessible_resources": [{
+        "resources": [],
+        "matches": ["<all_urls>"],
+        "extension_ids": []
+    }],
+    "icons": {
+        "16": "icon.png",
+        "48": "icon.png",
+        "128": "icon.png"
+    },
+    "offline_enabled": true
+}
+  
