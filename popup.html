@@ -1,0 +1,101 @@
+let isRunning = false;
+
+const startPauseButton = document.getElementById("startPauseButton");
+const resetButton = document.getElementById("resetButton");
+const hoursInput = document.getElementById('hours');
+const minutesInput = document.getElementById('minutes');
+const secondsInput = document.getElementById('seconds');
+
+startPauseButton.addEventListener("click", function() {
+    if (this.textContent === "Start") {
+        var hours = parseInt(hoursInput.value) || 0;
+        var minutes = parseInt(minutesInput.value) || 0;
+        var seconds = parseInt(secondsInput.value) || 0;
+
+        hours = hours < 100? hours: 99;
+        minutes = minutes < 60? minutes: 59;
+        seconds = seconds < 60? seconds: 59;
+
+        if (hours + minutes + seconds == 0) {
+            return;
+        }
+        if (seconds > 0) {
+            seconds--;
+        } else {
+            seconds = 59;
+            if (minutes > 0) {
+                minutes--;
+            } else {
+                minutes = 59;
+                hours--;
+            }
+        }
+        document.getElementById("hours").value = hours;
+        document.getElementById("minutes").value = minutes;
+        document.getElementById("seconds").value = seconds;
+
+        document.getElementById("title").textContent = "Running";
+        this.textContent = "Pause";
+        chrome.runtime.sendMessage({command: "startTimer", hours: hours, minutes: minutes, seconds: seconds});
+
+        isRunning = true;
+        hoursInput.disabled = true;
+        minutesInput.disabled = true;
+        secondsInput.disabled = true;
+
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            chrome.tabs.sendMessage(tabs[0].id, {action: "showFloatingTimer"});
+        });
+    } else {
+        document.getElementById("title").textContent = "Paused";
+        this.textContent = "Start";
+        chrome.runtime.sendMessage({command: "pauseTimer"});
+
+        isRunning = false;
+        hoursInput.disabled = false;
+        minutesInput.disabled = false;
+        secondsInput.disabled = false;   
+    }
+});
+
+resetButton.addEventListener("click", function() {
+    var hours = document.getElementById("hours").value;
+    var minutes = document.getElementById("minutes").value;
+    var seconds = document.getElementById("seconds").value;
+    if (hours + minutes + seconds != 0) {
+        document.getElementById("title").textContent = "Stopped";
+        startPauseButton.textContent = "Start";
+        chrome.runtime.sendMessage({command: "resetTimer"});
+        
+        isRunning = false;
+        hoursInput.disabled = false;
+        minutesInput.disabled = false;
+        secondsInput.disabled = false;
+        hoursInput.value = "";
+        minutesInput.value = "";
+        secondsInput.value = "";
+    }
+});
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    if (message.command === "updateTimer") {
+        document.getElementById("hours").value = message.timer.hours;
+        document.getElementById("minutes").value = message.timer.minutes;
+        document.getElementById("seconds").value = message.timer.seconds;
+    } else if (message.command === "timerFinished") {
+        isRunning = false;
+        hoursInput.disabled = false;
+        minutesInput.disabled = false;
+        secondsInput.disabled = false;
+        hoursInput.value = "";
+        minutesInput.value = "";
+        secondsInput.value = "";
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    var body = document.querySelector('body');
+    body.addEventListener('click', function (event) {
+        event.stopPropagation();
+    });
+});
